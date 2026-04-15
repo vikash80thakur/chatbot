@@ -83,4 +83,14 @@ public class UserRepository {
                 email
         );
     }
+
+    public List<User> findByOrgId(Long orgId){
+        String sql = "SELECT * FROM users WHERE organization_id=?";
+        return template.query(sql, ((rs, rowNum) -> new User(
+                rs.getLong("id"),
+                rs.getString("name"),
+                rs.getString("email"),
+                rs.getLong("organization_id")
+        )), orgId);
+    }
 }
