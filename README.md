@@ -178,4 +178,4 @@ Project is structured to support:
 
 ## 👨‍💻 Author
 
-Vikash Thakur
+Vikash Thakur & Girish Hardia 
