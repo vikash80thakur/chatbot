@@ -1,0 +1,157 @@
+pipeline {
+  agent any
+
+  options {
+    timestamps()
+    disableConcurrentBuilds()
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+    skipDefaultCheckout(true)
+  }
+
+  environment {
+    DOCKER_BUILDKIT = "1"
+  }
+
+  stages {
+
+    stage('Checkout') {
+      steps {
+        checkout scm
+        script {
+          env.GIT_SHA = sh(script: "git rev-parse --short=8 HEAD", returnStdout: true).trim()
+          env.IMAGE_TAG = "${env.BUILD_NUMBER}-${env.GIT_SHA}"
+        }
+      }
+    }
+
+    // ✅ Ensure mvnw is executable on Linux agents
+    stage('Prep: Make mvnw executable') {
+      steps {
+        sh '''
+          set -eux
+          chmod +x organization-service/mvnw || true
+          chmod +x gateway-service/mvnw || true
+          chmod +x chatbot-service/mvnw || true
+        '''
+      }
+    }
+
+    stage('Build + Test (Maven Wrapper)') {
+      parallel {
+
+        stage('organization-service') {
+          steps {
+            sh '''
+              set -eux
+              cd organization-service
+              ./mvnw -B -ntp clean test
+            '''
+          }
+        }
+
+        stage('gateway-service') {
+          steps {
+            sh '''
+              set -eux
+              cd gateway-service
+              ./mvnw -B -ntp clean test
+            '''
+          }
+        }
+
+        stage('chatbot-service') {
+          steps {
+            sh '''
+              set -eux
+              cd chatbot-service
+              ./mvnw -B -ntp clean test
+            '''
+          }
+        }
+      }
+    }
+
+    stage('Package (Jar)') {
+      parallel {
+
+        stage('package organization-service') {
+          steps {
+            sh '''
+              set -eux
+              cd organization-service
+              ./mvnw -B -ntp clean package -DskipTests
+            '''
+          }
+        }
+
+        stage('package gateway-service') {
+          steps {
+            sh '''
+              set -eux
+              cd gateway-service
+              ./mvnw -B -ntp clean package -DskipTests
+            '''
+          }
+        }
+
+        stage('package chatbot-service') {
+          steps {
+            sh '''
+              set -eux
+              cd chatbot-service
+              ./mvnw -B -ntp clean package -DskipTests
+            '''
+          }
+        }
+      }
+    }
+
+    stage('Docker Build Images') {
+      parallel {
+
+        stage('Docker Build: organization-service') {
+          steps {
+            sh '''
+              set -eux
+              docker build -t organization-service:${IMAGE_TAG} organization-service
+            '''
+          }
+        }
+
+        stage('Docker Build: gateway-service') {
+          steps {
+            sh '''
+              set -eux
+              docker build -t gateway-service:${IMAGE_TAG} gateway-service
+            '''
+          }
+        }
+
+        stage('Docker Build: chatbot-service') {
+          steps {
+            sh '''
+              set -eux
+              docker build -t chatbot-service:${IMAGE_TAG} chatbot-service
+            '''
+          }
+        }
+      }
+    }
+
+    stage('Show Docker Images') {
+      steps {
+        sh '''
+          set -eux
+          docker images | head -n 20
+        '''
+      }
+    }
+  }
+
+  post {
+    always {
+      junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+      archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true, allowEmptyArchive: true
+    }
+  }
+}
