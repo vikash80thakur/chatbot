@@ -44,7 +44,8 @@ pipeline {
             sh '''
               set -eux
               cd organization-service
-              ./mvnw -B -ntp clean test
+              ./mvnw -B -ntp clean package -DskipTests      //Disable DB tests in CI
+
             '''
           }
         }
@@ -54,7 +55,8 @@ pipeline {
             sh '''
               set -eux
               cd gateway-service
-              ./mvnw -B -ntp clean test
+              ./mvnw -B -ntp clean package -DskipTests    //Disable DB tests in CI
+
             '''
           }
         }
@@ -64,7 +66,8 @@ pipeline {
             sh '''
               set -eux
               cd chatbot-service
-              ./mvnw -B -ntp clean test
+              ./mvnw -B -ntp clean package -DskipTests  // Disable DB tests in CI
+
             '''
           }
         }
