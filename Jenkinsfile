@@ -113,6 +113,39 @@ pipeline {
         }
       }
     }
+    
+    stage('Security Scan (Trivy)') {
+  steps {
+    sh '''
+      set -eux
+
+      echo "🔐 Running Trivy scan for organization-service image"
+      docker run --rm \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        -v $HOME/.cache/trivy:/root/.cache/trivy \
+        aquasec/trivy:0.69.3 image \
+        --severity HIGH,CRITICAL \
+        --exit-code 1 \
+        organization-service:${IMAGE_TAG}
+
+      echo "🔐 Running Trivy scan for gateway-service image"
+      docker run --rm \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        aquasec/trivy:0.69.3 image \
+        --severity HIGH,CRITICAL \
+        --exit-code 1 \
+        gateway-service:${IMAGE_TAG}
+
+      echo "🔐 Running Trivy scan for chatbot-service image"
+      docker run --rm \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        aquasec/trivy:0.69.3 image \
+        --severity HIGH,CRITICAL \
+        --exit-code 1 \
+        chatbot-service:${IMAGE_TAG}
+    '''
+  }
+}
 
     // ✅ MAIN ARTIFACT: Push images to Docker Hub under girishhardia/chatbot with different tags
     stage('Push Images to Docker Hub') {
