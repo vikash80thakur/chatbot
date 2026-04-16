@@ -148,6 +148,14 @@ spring.sql.init.mode=always
 
 ---
 
+
+---
+
+## 🏗️ Architecture
+<img width="1536" height="1024" alt="ChatGPT Image Apr 15, 2026, 11_49_43 AM" src="https://github.com/user-attachments/assets/9ad7d18e-0993-4a18-81c4-786ff9d66e4b" />
+
+---
+
 ## 🐳 Docker Support (Optional)
 
 Project is structured to support:
