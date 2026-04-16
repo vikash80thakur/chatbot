@@ -1,6 +1,8 @@
 package second.week.organization_service.service;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,8 +19,12 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
     public UserResponse createUser(UserRequest request){
+        logger.info("Creating user with email: {}", request.getEmail());
         if(userRepository.countByMail(request.getEmail()) > 0){
+            logger.error("User already exists with email: {}", request.getEmail());
             throw new RuntimeException("Email already Exits: Please try another One: ");
         }
 
@@ -28,6 +34,7 @@ public class UserService {
         user.setOrganizationId(request.getOrganizationId());
 
         User savedOne = userRepository.save(user);
+        logger.info("User created successfully with id: {}", savedOne.getId());
 
         UserResponse res = new UserResponse();
         BeanUtils.copyProperties(savedOne, res);

@@ -1,5 +1,7 @@
 package second.week.organization_service.repository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -17,9 +19,11 @@ public class UserRepository {
     @Autowired
     private JdbcTemplate template;
 
+    private static final Logger logger = LoggerFactory.getLogger(UserRepository.class);
 
     // for creating user
     public User save(User user){
+        logger.debug("Saving user to database: {}", user.getEmail());
         String sql = "INSERT INTO users (name, email, organization_id) VALUES (?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -33,6 +37,8 @@ public class UserRepository {
 
         Long generatedId = keyHolder.getKey().longValue();
         user.setId(generatedId);
+
+        logger.debug("User saved with id: {}", user.getId());
         return user;
     }
 

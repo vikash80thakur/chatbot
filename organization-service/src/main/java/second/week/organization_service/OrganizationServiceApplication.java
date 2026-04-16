@@ -9,6 +9,7 @@ public class OrganizationServiceApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(OrganizationServiceApplication.class, args);
 		System.out.println("Welcome to the Application: ");
+		System.out.println(System.getenv("SPRING_DATASOURCE_URL"));
 	}
 
 }

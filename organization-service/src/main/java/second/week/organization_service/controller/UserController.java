@@ -1,6 +1,8 @@
 package second.week.organization_service.controller;
 
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import second.week.organization_service.dto.users.UserRequest;
@@ -17,8 +19,11 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
     @PostMapping
     public UserResponse createUser(@Valid @RequestBody UserRequest request){
+        logger.info("Received request to create user with email: {}", request.getEmail());
         return userService.createUser(request);
     }
 
