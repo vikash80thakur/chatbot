@@ -78,6 +78,12 @@
 <!--			<artifactId>spring-dotenv</artifactId>-->
 <!--			<version>4.0.0</version>-->
 <!--		</dependency>-->
+
+<!--	this below dependency is for Health check point -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
