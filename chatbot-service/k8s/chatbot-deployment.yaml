@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chatbot-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chatbot-service
+  template:
+    metadata:
+      labels:
+        app: chatbot-service
+    spec:
+      containers:
+        - name: chatbot-service
+          image: girishhardia/chatbot:chatbot-latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8084
+          readinessProbe:
+            httpGet:
+              path: /api/chat
+              port: 8084
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/chat
+              port: 8084
+            initialDelaySeconds: 20
