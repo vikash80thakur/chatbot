@@ -1,5 +1,6 @@
 package second.week.organization_service.repository;
 
+import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import java.util.List;
 
 
 @Repository
+@AllArgsConstructor
 public class UserRepository {
 
     @Autowired
@@ -24,14 +26,16 @@ public class UserRepository {
     // for creating user
     public User save(User user){
         logger.debug("Saving user to database: {}", user.getEmail());
-        String sql = "INSERT INTO users (name, email, organization_id) VALUES (?, ?, ?)";
+//        String sql = "INSERT INTO users (name, email, organization_id) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO users (name, email, password, organization_id) VALUES (?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         template.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
             ps.setString(1, user.getName());
             ps.setString(2, user.getEmail());
-            ps.setLong(3, user.getOrganizationId());
+            ps.setString(3, user.getPassword());
+            ps.setLong(4, user.getOrganizationId());
             return ps;
         }, keyHolder);
 
@@ -49,6 +53,7 @@ public class UserRepository {
                 rs.getLong("id"),
                 rs.getString("name"),
                 rs.getString("email"),
+                rs.getString("password"),
                 rs.getLong("organization_id")
         ));
     }
@@ -60,6 +65,7 @@ public class UserRepository {
                 rs.getLong("id"),
                 rs.getString("name"),
                 rs.getString("email"),
+                rs.getString("password"),
                 rs.getLong("organization_id")
         ): null, id);
     }
@@ -67,8 +73,8 @@ public class UserRepository {
 
     // for updating the user
     public User update(User user){
-        String sql = "UPDATE users SET name=?, email=? WHERE id=?";
-        int row =  template.update(sql, user.getName(), user.getEmail(), user.getId());
+        String sql = "UPDATE users SET name=?, email=?, password=? WHERE id=?";
+        int row =  template.update(sql, user.getName(), user.getEmail(), user.getPassword(), user.getId());
         if(row == 0){
             throw new RuntimeException("User not Found: " + user.getId());
         }
@@ -96,7 +102,22 @@ public class UserRepository {
                 rs.getLong("id"),
                 rs.getString("name"),
                 rs.getString("email"),
+                rs.getString("password"),
                 rs.getLong("organization_id")
         )), orgId);
+    }
+
+    public User findByEmail(String email) {
+        String sql = "SELECT * FROM users WHERE email=?";
+
+        List<User> users = template.query(sql, (rs, rowNum) -> new User(
+                rs.getLong("id"),
+                rs.getString("name"),
+                rs.getString("email"),
+                rs.getString("password"),
+                rs.getLong("organization_id")
+        ), email);
+
+        return users.isEmpty() ? null : users.get(0);
     }
 }

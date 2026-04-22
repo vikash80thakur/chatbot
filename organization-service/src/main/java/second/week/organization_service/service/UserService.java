@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import second.week.organization_service.dto.users.UserRequest;
 import second.week.organization_service.dto.users.UserResponse;
@@ -21,6 +22,9 @@ public class UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
     public UserResponse createUser(UserRequest request){
         logger.info("Creating user with email: {}", request.getEmail());
         if(userRepository.countByMail(request.getEmail()) > 0){
@@ -31,6 +35,9 @@ public class UserService {
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
+        user.setPassword(request.getPassword());
+//        Here I'm saving password in encrypted form
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setOrganizationId(request.getOrganizationId());
 
         User savedOne = userRepository.save(user);

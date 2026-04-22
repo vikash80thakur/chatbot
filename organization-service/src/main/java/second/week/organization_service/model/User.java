@@ -14,5 +14,9 @@ public class User {
     private Long id;
     private String name;
     private String email;
+    private String password;
     private Long organizationId;
+
+//    public User(long id, String name, String email, long organizationId) {
+//    }
 }
