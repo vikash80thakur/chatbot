@@ -159,6 +159,8 @@ Aggregates data from multiple sources and returns:
 * Spring Data JPA
 * PostgreSQL
 * Maven / Gradle
+* JWT (io.jsonwebtoken)
+* BCrypt (Spring Security Crypto)
 
 ---
 
