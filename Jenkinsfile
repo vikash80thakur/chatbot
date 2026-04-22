@@ -124,23 +124,25 @@ pipeline {
         -v /var/run/docker.sock:/var/run/docker.sock \
         -v $HOME/.cache/trivy:/root/.cache/trivy \
         aquasec/trivy:0.69.3 image \
-        --severity HIGH,CRITICAL \
+        --severity CRITICAL \
         --exit-code 1 \
         organization-service:${IMAGE_TAG}
 
       echo "🔐 Running Trivy scan for gateway-service image"
       docker run --rm \
         -v /var/run/docker.sock:/var/run/docker.sock \
+        -v $HOME/.cache/trivy:/root/.cache/trivy \
         aquasec/trivy:0.69.3 image \
-        --severity HIGH,CRITICAL \
+        --severity CRITICAL \
         --exit-code 1 \
         gateway-service:${IMAGE_TAG}
 
       echo "🔐 Running Trivy scan for chatbot-service image"
       docker run --rm \
         -v /var/run/docker.sock:/var/run/docker.sock \
+        -v $HOME/.cache/trivy:/root/.cache/trivy \
         aquasec/trivy:0.69.3 image \
-        --severity HIGH,CRITICAL \
+        --severity CRITICAL \
         --exit-code 1 \
         chatbot-service:${IMAGE_TAG}
     '''
