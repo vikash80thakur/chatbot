@@ -47,4 +47,10 @@ public class UserController {
     public String deleteUser(@PathVariable Long id){
         return userService.deleteUser(id);
     }
+
+    // for header propagation testing
+    @GetMapping("/header")
+    public String test(@RequestHeader("X-User") String user) {
+        return "User: " + user;
+    }
 }
