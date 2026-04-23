@@ -12,9 +12,11 @@ spec:
       labels:
         app: chatbot-service
     spec:
+      imagePullSecrets:
+        - name: dockerhub-secret
       containers:
         - name: chatbot-service
-          image: girishhardia/chatbot:chatbot-latest
+          image: girishhardia/chatbot:chatbot-${IMAGE_TAG}
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8084

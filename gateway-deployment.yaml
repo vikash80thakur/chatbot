@@ -14,9 +14,11 @@ spec:
       labels:
         app: api-gateway
     spec:
+      imagePullSecrets:
+        - name: dockerhub-secret
       containers:
         - name: api-gateway
-          image: girishhardia/chatbot:gateway-latest
+          image: girishhardia/chatbot:gateway-${IMAGE_TAG}
           imagePullPolicy: IfNotPresent
 
           ports:
