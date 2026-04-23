@@ -1,15 +1,18 @@
 # 🚀 Organization Service – Microservices Backend
-
 ## 📌 Overview
 
-This project is part of a microservices-based backend system where the **Organization Service** manages organizations, users, and projects.
+This project is part of a microservices-based backend system where:
 
-It demonstrates a hybrid data access approach using:
+Organization Service manages organizations, users, and projects
+API Gateway handles routing, authentication, and security
 
-* Spring Boot
-* JPA (Hibernate)
-* JDBC Template
-* PostgreSQL
+It demonstrates a real-world architecture with:
+
+Spring Boot
+Spring Cloud Gateway
+JWT Authentication
+Hybrid data access (JPA + JDBC Template)
+PostgreSQL
 
 ---
 
@@ -35,6 +38,66 @@ It demonstrates a hybrid data access approach using:
 * Supports aggregation with organization
 
 ---
+
+## 🔐 Authentication & Security (NEW 🚀)
+
+### ✅ JWT-based Authentication
+
+* Users login via:
+
+```
+POST /auth/login
+```
+
+* Credentials are validated using the database
+* JWT token is generated upon successful login
+
+---
+
+### ✅ API Gateway Security
+
+* All requests pass through the API Gateway
+* JWT token is validated using a custom Global Filter
+* Unauthorized requests are blocked
+
+---
+
+### ✅ Header Propagation
+
+* Gateway extracts user identity from JWT
+* Passes it to microservices via headers:
+
+```
+X-User: <username>
+```
+
+---
+
+### ✅ Centralized Error Handling
+
+* All errors are handled at the Gateway level
+* Returns consistent JSON responses
+
+---
+
+## 🔁 Request Flow (Important)
+
+```
+Client
+   ↓
+Login API (Organization Service)
+   ↓
+JWT Generated
+   ↓
+Client sends token
+   ↓
+API Gateway (JWT validation)
+   ↓
+Routes request to Organization Service
+```
+
+
+
 
 ## 🔗 Database Design
 
@@ -96,6 +159,8 @@ Aggregates data from multiple sources and returns:
 * Spring Data JPA
 * PostgreSQL
 * Maven / Gradle
+* JWT (io.jsonwebtoken)
+* BCrypt (Spring Security Crypto)
 
 ---
 
