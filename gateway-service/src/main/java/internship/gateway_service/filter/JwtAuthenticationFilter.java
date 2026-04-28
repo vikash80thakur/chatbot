@@ -30,7 +30,7 @@ public class JwtAuthenticationFilter implements GlobalFilter {
             String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                return unauthorized(exchange, "Missing/Invalid Authorization header");
+                throw new RuntimeException("AUTH_HEADER_MISSING");
             }
 
             String token = authHeader.substring(7);
@@ -46,7 +46,7 @@ public class JwtAuthenticationFilter implements GlobalFilter {
                 return chain.filter(exchange.mutate().request(mutatedRequest).build());
 
             } catch (Exception e) {
-                return unauthorized(exchange, "Invalid or expired token");
+                throw new RuntimeException("JWT_INVALID");
             }
         }
 
