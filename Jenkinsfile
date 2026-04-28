@@ -9,9 +9,7 @@ pipeline {
   }
 
   environment {
-    // ✅ Docker Hub single repo
     DOCKERHUB_REPO = "girishhardia/chatbot"
-
     ORG_SVC  = "organization-service"
     GW_SVC   = "gateway-service"
     CHAT_SVC = "chatbot-service"
@@ -40,10 +38,8 @@ pipeline {
       }
     }
 
-    // ✅ Keep tests (safe approach right now)
     stage('Tests (Maven Wrapper)') {
       parallel {
-
         stage('gateway-service tests') {
           steps {
             sh '''
@@ -64,8 +60,6 @@ pipeline {
           }
         }
 
-        // org-service tests previously failed due to DB requirement in CI.
-        // Keep it skipped until we add H2 profile or Testcontainers.
         stage('organization-service tests (skipped for now)') {
           steps {
             sh '''
@@ -78,10 +72,8 @@ pipeline {
       }
     }
 
-    // ✅ Build local images (as you already do successfully) [1](https://myoffice.accenture.com/personal/girish_hardia_accenture_com/_layouts/15/Doc.aspx?sourcedoc=%7BA56D0D9E-FF9C-440C-9A03-BE45DEEA2290%7D&file=temp.docx&action=default&mobileredirect=true)
     stage('Docker Build Images') {
       parallel {
-
         stage('Build organization-service image') {
           steps {
             sh '''
@@ -113,75 +105,101 @@ pipeline {
         }
       }
     }
-    
+
     stage('Security Scan (Trivy)') {
-  steps {
-    sh '''
-      set -eux
+      steps {
+        sh '''
+          set -eux
 
-      echo "🔐 Running Trivy scan for organization-service image"
-      docker run --rm \
-        -v /var/run/docker.sock:/var/run/docker.sock \
-        -v $HOME/.cache/trivy:/root/.cache/trivy \
-        aquasec/trivy:0.69.3 image \
-        --severity CRITICAL \
-        --exit-code 1 \
-        organization-service:${IMAGE_TAG}
+          echo "🔐 Trivy scan: organization-service"
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v $HOME/.cache/trivy:/root/.cache/trivy \
+            aquasec/trivy:0.69.3 image \
+            --severity CRITICAL \
+            --exit-code 1 \
+            ${ORG_SVC}:${IMAGE_TAG}
 
-      echo "🔐 Running Trivy scan for gateway-service image"
-      docker run --rm \
-        -v /var/run/docker.sock:/var/run/docker.sock \
-        -v $HOME/.cache/trivy:/root/.cache/trivy \
-        aquasec/trivy:0.69.3 image \
-        --severity CRITICAL \
-        --exit-code 1 \
-        gateway-service:${IMAGE_TAG}
+          echo "🔐 Trivy scan: gateway-service"
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v $HOME/.cache/trivy:/root/.cache/trivy \
+            aquasec/trivy:0.69.3 image \
+            --severity CRITICAL \
+            --exit-code 1 \
+            ${GW_SVC}:${IMAGE_TAG}
 
-      echo "🔐 Running Trivy scan for chatbot-service image"
-      docker run --rm \
-        -v /var/run/docker.sock:/var/run/docker.sock \
-        -v $HOME/.cache/trivy:/root/.cache/trivy \
-        aquasec/trivy:0.69.3 image \
-        --severity CRITICAL \
-        --exit-code 1 \
-        chatbot-service:${IMAGE_TAG}
-    '''
-  }
-}
+          echo "🔐 Trivy scan: chatbot-service"
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v $HOME/.cache/trivy:/root/.cache/trivy \
+            aquasec/trivy:0.69.3 image \
+            --severity CRITICAL \
+            --exit-code 1 \
+            ${CHAT_SVC}:${IMAGE_TAG}
+        '''
+      }
+    }
 
-    // ✅ MAIN ARTIFACT: Push images to Docker Hub under girishhardia/chatbot with different tags
     stage('Push Images to Docker Hub') {
       steps {
         withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
                                           usernameVariable: 'DH_USER',
                                           passwordVariable: 'DH_TOKEN')]) {
-          sh '''
-            set -eux
-            echo "$DH_TOKEN" | docker login -u "$DH_USER" --password-stdin
 
-            # Tag each service into ONE repo using distinct tags
-            docker tag ${ORG_SVC}:${IMAGE_TAG}  ${DOCKERHUB_REPO}:organization-${IMAGE_TAG}
-            docker tag ${GW_SVC}:${IMAGE_TAG}   ${DOCKERHUB_REPO}:gateway-${IMAGE_TAG}
-            docker tag ${CHAT_SVC}:${IMAGE_TAG} ${DOCKERHUB_REPO}:chatbot-${IMAGE_TAG}
+          // Hard stop if DockerHub upload stalls
+          timeout(time: 20, unit: 'MINUTES') {
+            sh '''
+              set -eux
+              echo "$DH_TOKEN" | docker login -u "$DH_USER" --password-stdin
 
-            # Optional rolling tags (handy for latest)
-            docker tag ${ORG_SVC}:${IMAGE_TAG}  ${DOCKERHUB_REPO}:organization-latest
-            docker tag ${GW_SVC}:${IMAGE_TAG}   ${DOCKERHUB_REPO}:gateway-latest
-            docker tag ${CHAT_SVC}:${IMAGE_TAG} ${DOCKERHUB_REPO}:chatbot-latest
+              # Tag each service into ONE repo using immutable tags
+              docker tag ${ORG_SVC}:${IMAGE_TAG}  ${DOCKERHUB_REPO}:organization-${IMAGE_TAG}
+              docker tag ${GW_SVC}:${IMAGE_TAG}   ${DOCKERHUB_REPO}:gateway-${IMAGE_TAG}
+              docker tag ${CHAT_SVC}:${IMAGE_TAG} ${DOCKERHUB_REPO}:chatbot-${IMAGE_TAG}
+            '''
+          }
 
-            # Push versioned tags
-            docker push ${DOCKERHUB_REPO}:organization-${IMAGE_TAG}
-            docker push ${DOCKERHUB_REPO}:gateway-${IMAGE_TAG}
-            docker push ${DOCKERHUB_REPO}:chatbot-${IMAGE_TAG}
+          // Retry pushes (helps with intermittent 502 / slow network)
+          retry(2) {
+            timeout(time: 20, unit: 'MINUTES') {
+              sh '''
+                set -eux
+                docker push ${DOCKERHUB_REPO}:organization-${IMAGE_TAG}
+                docker push ${DOCKERHUB_REPO}:gateway-${IMAGE_TAG}
+                docker push ${DOCKERHUB_REPO}:chatbot-${IMAGE_TAG}
+              '''
+            }
+          }
 
-            # Push rolling tags
-            docker push ${DOCKERHUB_REPO}:organization-latest
-            docker push ${DOCKERHUB_REPO}:gateway-latest
-            docker push ${DOCKERHUB_REPO}:chatbot-latest
-
-            docker logout
-          '''
+          sh 'docker logout'
         }
+      }
+    }
+
+    stage('Deploy to Minikube (Rolling Update)') {
+      steps {
+        sh '''
+          set -eux
+
+          # Ensure we are talking to minikube
+          kubectl config use-context minikube
+
+          # Update images in running deployments (CD step)
+          kubectl set image deployment/organization-service \
+            organization-service=${DOCKERHUB_REPO}:organization-${IMAGE_TAG}
+
+          kubectl set image deployment/chatbot-service \
+            chatbot-service=${DOCKERHUB_REPO}:chatbot-${IMAGE_TAG}
+
+          kubectl set image deployment/api-gateway \
+            api-gateway=${DOCKERHUB_REPO}:gateway-${IMAGE_TAG}
+
+          # Wait for rollouts
+          kubectl rollout status deployment/organization-service
+          kubectl rollout status deployment/chatbot-service
+          kubectl rollout status deployment/api-gateway
+        '''
       }
     }
 
@@ -203,14 +221,8 @@ EOF
 
   post {
     always {
-      // Tests are important; we publish whatever exists
       junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
-
-      // ✅ Main artifact reference is the pushed image tags (not JARs)
       archiveArtifacts artifacts: 'artifacts/image-tags.txt', fingerprint: true, allowEmptyArchive: false
-
-      // Optional: keep jars archived for debugging (NOT the main artifact)
-      // archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true, allowEmptyArchive: true
     }
   }
 }

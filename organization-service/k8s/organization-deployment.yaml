@@ -12,9 +12,11 @@ spec:
       labels:
         app: organization-service
     spec:
+      imagePullSecrets:
+        - name: dockerhub-secret
       containers:
         - name: organization-service
-          image: girishhardia/chatbot:organization-latest
+          image: girishhardia/chatbot:organization-${IMAGE_TAG}
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8082
