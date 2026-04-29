@@ -14,4 +14,4 @@ env:
     key: POSTGRES_USER
   SPRING_DATASOURCE_PASSWORD_SECRET:
     name: postgres-secret
-    key: POSTGRES_PASSWORD
+    key: POSTGRES_PASSWORD 
