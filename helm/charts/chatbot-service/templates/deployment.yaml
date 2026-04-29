@@ -24,3 +24,21 @@ spec:
           imagePullPolicy: {{ .Values.global.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
+
+      readinessProbe:
+        httpGet:
+          path: /actuator/health/readiness
+          port: {{ .Values.service.port }}
+        initialDelaySeconds: 20
+        periodSeconds: 10
+        timeoutSeconds: 3
+        failureThreshold: 5
+
+      livenessProbe:
+        httpGet:
+          path: /actuator/health/liveness
+          port: {{ .Values.service.port }}
+        initialDelaySeconds: 45
+        periodSeconds: 20
+        timeoutSeconds: 5
+        failureThreshold: 3

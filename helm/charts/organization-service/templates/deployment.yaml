@@ -37,3 +37,21 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.env.SPRING_DATASOURCE_PASSWORD_SECRET.name }}
                   key: {{ .Values.env.SPRING_DATASOURCE_PASSWORD_SECRET.key }}
+
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 5
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
