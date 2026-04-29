@@ -1,0 +1,12 @@
+dependencies:
+- name: api-gateway
+  repository: file://charts/api-gateway
+  version: 0.1.0
+- name: chatbot-service
+  repository: file://charts/chatbot-service
+  version: 0.1.0
+- name: organization-service
+  repository: file://charts/organization-service
+  version: 0.1.0
+digest: sha256:06ada56de21d1f4d235679771420c140f7c8a4163561f3064ddff820b82bdcf4
+generated: "2026-04-28T08:47:21.641450343Z"

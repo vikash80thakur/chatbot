@@ -1,0 +1,29 @@
+replicaCount: 1
+
+image:
+  tag: "0.0.0"
+
+service:
+  type: NodePort
+  port: 8080
+  nodePort: 30080
+
+# ✅ SAFE DEFAULTS for linting & templating
+config:
+  applicationProperties: |
+    spring.application.name=api-gateway
+    server.port=8080
+
+    # organization service
+    spring.cloud.gateway.routes[0].id=organization-service
+    spring.cloud.gateway.routes[0].uri=http://organization-service:8082
+    spring.cloud.gateway.routes[0].predicates[0]=Path=/org/**
+
+    # chatbot service
+    spring.cloud.gateway.routes[1].id=chatbot-service
+    spring.cloud.gateway.routes[1].uri=http://chatbot-service:8084
+    spring.cloud.gateway.routes[1].predicates[0]=Path=/chat/**
+
+secret:
+  enabled: false
+  data: {}

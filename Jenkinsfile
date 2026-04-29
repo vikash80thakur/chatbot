@@ -160,7 +160,7 @@ pipeline {
             '''
           }
 
-          // Retry pushes (helps with intermittent 502 / slow network)
+          // Retry pushes (helps with intermittent 502)
           retry(2) {
             timeout(time: 20, unit: 'MINUTES') {
               sh '''
@@ -177,28 +177,48 @@ pipeline {
       }
     }
 
-    stage('Deploy to Minikube (Rolling Update)') {
+    // stage('Deploy to Minikube (Rolling Update)') {
+    //   steps {
+    //     sh '''
+    //       set -eux
+
+    //       # Ensure we are talking to minikube
+    //       kubectl config use-context minikube
+
+    //       # Update images in running deployments (CD step)
+    //       kubectl set image deployment/organization-service \
+    //         organization-service=${DOCKERHUB_REPO}:organization-${IMAGE_TAG}
+
+    //       kubectl set image deployment/chatbot-service \
+    //         chatbot-service=${DOCKERHUB_REPO}:chatbot-${IMAGE_TAG}
+
+    //       kubectl set image deployment/api-gateway \
+    //         api-gateway=${DOCKERHUB_REPO}:gateway-${IMAGE_TAG}
+
+    //       # Wait for rollouts
+    //       kubectl rollout status deployment/organization-service
+    //       kubectl rollout status deployment/chatbot-service
+    //       kubectl rollout status deployment/api-gateway
+    //     '''
+    //   }
+    // }
+
+    stage('Deploy to Minikube (Helm Umbrella Chart)') {
       steps {
         sh '''
           set -eux
 
-          # Ensure we are talking to minikube
+          # Make sure we are using minikube
           kubectl config use-context minikube
 
-          # Update images in running deployments (CD step)
-          kubectl set image deployment/organization-service \
-            organization-service=${DOCKERHUB_REPO}:organization-${IMAGE_TAG}
+          # Helm deploy / upgrade (NO latest tags)
+          helm upgrade --install chatbot-platform ./helm \
+            --set organization-service.image.tag="${IMAGE_TAG}" \
+            --set chatbot-service.image.tag="${IMAGE_TAG}" \
+            --set api-gateway.image.tag="${IMAGE_TAG}"
 
-          kubectl set image deployment/chatbot-service \
-            chatbot-service=${DOCKERHUB_REPO}:chatbot-${IMAGE_TAG}
-
-          kubectl set image deployment/api-gateway \
-            api-gateway=${DOCKERHUB_REPO}:gateway-${IMAGE_TAG}
-
-          # Wait for rollouts
-          kubectl rollout status deployment/organization-service
-          kubectl rollout status deployment/chatbot-service
-          kubectl rollout status deployment/api-gateway
+          # show release status
+          helm status chatbot-platform
         '''
       }
     }
