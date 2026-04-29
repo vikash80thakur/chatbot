@@ -1,0 +1,41 @@
+global:
+  image:
+    repository: girishhardia/chatbot
+    pullPolicy: IfNotPresent
+
+  imagePullSecrets:
+    - name: dockerhub-secret
+
+# Subchart overrides (parent overrides child chart values)
+organization-service:
+  replicaCount: 1
+  image:
+    tag: "0.0.0"   # CI will override: organization-<BUILD>-<GITSHA>
+  service:
+    type: ClusterIP
+    port: 8082
+  env:
+    SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/organizationdb
+    SPRING_DATASOURCE_USERNAME_SECRET:
+      name: postgres-secret
+      key: POSTGRES_USER
+    SPRING_DATASOURCE_PASSWORD_SECRET:
+      name: postgres-secret
+      key: POSTGRES_PASSWORD
+
+chatbot-service:
+  replicaCount: 1
+  image:
+    tag: "0.0.0"   # CI will override: chatbot-<BUILD>-<GITSHA>
+  service:
+    type: ClusterIP
+    port: 8084
+
+api-gateway:
+  replicaCount: 1
+  image:
+    tag: "0.0.0"   # CI will override: gateway-<BUILD>-<GITSHA>
+  service:
+    type: NodePort
+    port: 8080
+    nodePort: 30080
