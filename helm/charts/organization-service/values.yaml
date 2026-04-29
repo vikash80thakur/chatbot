@@ -1,0 +1,17 @@
+replicaCount: 1
+
+image:
+  tag: "0.0.0"
+
+service:
+  type: ClusterIP
+  port: 8082
+
+env:
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/organizationdb
+  SPRING_DATASOURCE_USERNAME_SECRET:
+    name: postgres-secret
+    key: POSTGRES_USER
+  SPRING_DATASOURCE_PASSWORD_SECRET:
+    name: postgres-secret
+    key: POSTGRES_PASSWORD

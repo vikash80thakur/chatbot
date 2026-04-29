@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "chat.name" . }}
+  labels:
+    app: {{ include "chat.name" . }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app: {{ include "chat.name" . }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}
