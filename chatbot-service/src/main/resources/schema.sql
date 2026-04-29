@@ -1,4 +1,4 @@
-CREATE TABLE conversations
+CREATE TABLE IF NOT EXISTS conversations
 (
     id BIGSERIAL PRIMARY KEY,
     user_name VARCHAR(255),
@@ -7,7 +7,7 @@ CREATE TABLE conversations
 );
 
 
-CREATE TABLE messages
+CREATE TABLE IF NOT EXISTS messages
 (
     id BIGSERIAL PRIMARY KEY,
     conversation_id BIGINT,
