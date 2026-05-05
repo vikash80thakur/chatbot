@@ -44,6 +44,36 @@ public class ChatController {
         return chatService.getMessages(conversationId);
     }
 
+//    // 🔹 Get messages by conversation
+//    @GetMapping("/{conversationId}")
+//    public List<Message> getMessages(@PathVariable Long conversationId) {
+//        return chatService.getMessages(conversationId);
+//    }
+
+    // 🔹 Delete single message
+    @DeleteMapping("/messages/{id}")
+    public String deleteMessage(@PathVariable Long id) {
+        chatService.deleteMessage(id);
+        return "Message deleted successfully";
+    }
+
+    // 🔹 Delete all messages of a conversation
+    @DeleteMapping("/conversation/{conversationId}")
+    public String deleteMessagesByConversation(@PathVariable Long conversationId) {
+        chatService.deleteMessagesByConversation(conversationId);
+        return "All messages deleted for conversation";
+    }
+
+    // 🔹 Update message
+    @PutMapping("/messages/{id}")
+    public String updateMessage(
+            @PathVariable Long id,
+            @RequestBody MessageRequest request
+    ) {
+        chatService.updateMessage(id, request.getContent());
+        return "Message updated successfully";
+    }
+
 
 
     // rest template
@@ -52,14 +82,29 @@ public class ChatController {
         return chatService.getContext(orgId);
     }
 
+//    @PostMapping("/ai")
+//    public String chat(
+//            @RequestHeader("X-User") String user,
+//            @RequestBody ChatRequest request
+//    ) {
+//        return chatService.processMessage(
+//                request.getOrganizationId(),
+//                request.getMessage()
+//        );
+//    }
+
+
+//    Open AI
     @PostMapping("/ai")
     public String chat(
             @RequestHeader("X-User") String user,
             @RequestBody ChatRequest request
     ) {
         return chatService.processMessage(
+                request.getConversationId(),
                 request.getOrganizationId(),
-                request.getMessage()
+                request.getMessage(),
+                user
         );
     }
 }

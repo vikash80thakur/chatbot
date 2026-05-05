@@ -21,6 +21,8 @@ public class ChatService {
 
     private final RestTemplate restTemplate;
 
+    private final OpenAIService openAIService;
+
     // 🔹 Create new conversation
     public Conversation createConversation(String user, Long orgId) {
 
@@ -50,6 +52,22 @@ public class ChatService {
     }
 
 
+    // 🔹 Delete single message
+    public void deleteMessage(Long id) {
+        messageRepository.deleteById(id);
+    }
+
+    // 🔹 Delete all messages of a conversation
+    public void deleteMessagesByConversation(Long conversationId) {
+        messageRepository.deleteByConversationId(conversationId);
+    }
+
+    // 🔹 Update message
+    public void updateMessage(Long id, String content) {
+        messageRepository.updateContent(id, content);
+    }
+
+
     // this is for context api
     public ContextResponse getContext(Long orgId) {
 
@@ -64,62 +82,88 @@ public class ChatService {
     }
 
 
-    // below is for AI chat Response
-    public String processMessage(Long orgId, String userMessage) {
 
-        // 🔹 Step 1: Fetch context
+
+    private String buildPrompt(ContextResponse context, String message, String user, Long conversationId) {
+
+        StringBuilder prompt = new StringBuilder();
+
+        String name = user.split("@")[0]; // simple personalization
+
+        List<Message> history =
+                messageRepository.findByConversationId(conversationId);
+
+        if (history.size() > 10) {
+            history = history.subList(history.size() - 10, history.size());
+        }
+
+        prompt.append("You are a helpful AI assistant.\n\n");
+
+        prompt.append("User Name: ").append(name).append("\n");
+        prompt.append("User Email: ").append(user).append("\n\n");
+
+        if (context.getOrganizationResponse() != null) {
+            prompt.append("Organization: ")
+                    .append(context.getOrganizationResponse().getName())
+                    .append("\n");
+        }
+
+        if (context.getProjectResponses() != null) {
+            prompt.append("Projects:\n");
+            context.getProjectResponses().forEach(p ->
+                    prompt.append("- ").append(p.getName()).append("\n"));
+        }
+
+        if (context.getUserResponses() != null) {
+            prompt.append("Team Members:\n");
+            context.getUserResponses().forEach(u ->
+                    prompt.append("- ").append(u.getName()).append("\n"));
+        }
+
+        prompt.append("\nInstructions:\n");
+        prompt.append("- Respond like a smart assistant\n");
+        prompt.append("- Be friendly and professional\n");
+        prompt.append("- Use user's name when appropriate\n");
+        prompt.append("- Keep answer clear and natural\n");
+        prompt.append("- Do NOT make up data\n");
+
+        prompt.append("\nResponse Guidelines:\n");
+        prompt.append("- Respond in a friendly and professional tone\n");
+        prompt.append("- Use bullet points when listing multiple items\n");
+        prompt.append("- Use short paragraphs for explanations\n");
+        prompt.append("- Keep the response clear, clean, and easy to read\n");
+        prompt.append("- Do NOT use markdown (no ###, no **)\n");
+        prompt.append("- Use simple bullet points like • or -\n");
+        prompt.append("- Do not repeat information unnecessarily\n");
+
+        prompt.append("\nConversation History:\n");
+        for (Message msg : history) {
+            prompt.append(msg.getRole())  // "user" or "assistant"
+                    .append(": ")
+                    .append(msg.getContent())
+                    .append("\n");
+        }
+
+        prompt.append("\nUser Question: ").append(message);
+
+        return prompt.toString();
+    }
+
+    // below is for AI chat Response
+    public String processMessage(Long conversationId, Long orgId, String message, String user) {
+
         ContextResponse context = getContext(orgId);
 
-        if (context == null) {
-            return "Unable to fetch organization data.";
+        // 🔹 Optional: keep fast rules
+        if (message.toLowerCase().contains("project")) {
+            return "Handled locally (fast)";
         }
 
-        String msg = userMessage.toLowerCase();
+//        System.out.println("CALLING OPENAI...");
 
-        // 🔹 Step 2: Handle projects
-        if (msg.contains("project")) {
+        // 🔹 AI fallback
+        String prompt = buildPrompt(context, message, user, conversationId);
 
-            if (context.getProjectResponses() == null || context.getProjectResponses().isEmpty()) {
-                return "No projects found.";
-            }
-
-            StringBuilder response = new StringBuilder("Projects:\n");
-
-            context.getProjectResponses().forEach(p ->
-                    response.append("- ").append(p.getName()).append("\n")
-            );
-
-            return response.toString();
-        }
-
-        // 🔹 Step 3: Handle users
-        if (msg.contains("user")) {
-
-            if (context.getUserResponses() == null || context.getUserResponses().isEmpty()) {
-                return "No users found.";
-            }
-
-            StringBuilder response = new StringBuilder("Users:\n");
-
-            context.getUserResponses().forEach(u ->
-                    response.append("- ").append(u.getName()).append("\n")
-            );
-
-            return response.toString();
-        }
-
-        // 🔹 Step 4: Handle organization
-        if (msg.contains("organization")) {
-
-            if (context.getOrganizationResponse() == null) {
-                return "Organization not found.";
-            }
-
-            return "Organization Name: " +
-                    context.getOrganizationResponse().getName();
-        }
-
-        // 🔹 Step 5: Default response
-        return "Sorry, I didn't understand your query.";
+        return openAIService.askAI(prompt);
     }
 }

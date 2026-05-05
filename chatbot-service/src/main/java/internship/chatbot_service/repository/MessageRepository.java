@@ -31,7 +31,7 @@ public class MessageRepository {
     // 🔹 Get messages by conversationId
     public List<Message> findByConversationId(Long conversationId) {
 
-        String sql = "SELECT * FROM messages WHERE conversation_id=?";
+        String sql = "SELECT * FROM messages WHERE conversation_id=? ORDER BY timestamp ASC";
 
         return template.query(sql, (rs, rowNum) -> new Message(
                 rs.getLong("id"),
@@ -41,4 +41,24 @@ public class MessageRepository {
                 rs.getTimestamp("timestamp").toLocalDateTime()
         ), conversationId);
     }
+
+    // 🔹 Delete message by id
+    public void deleteById(Long id) {
+        String sql = "DELETE FROM messages WHERE id = ?";
+        template.update(sql, id);
+    }
+
+    // 🔹 Delete all messages by conversationId
+    public void deleteByConversationId(Long conversationId) {
+        String sql = "DELETE FROM messages WHERE conversation_id = ?";
+        template.update(sql, conversationId);
+    }
+
+    // 🔹 Update message content
+    public void updateContent(Long id, String content) {
+        String sql = "UPDATE messages SET content = ? WHERE id = ?";
+        template.update(sql, content, id);
+    }
+
+
 }
