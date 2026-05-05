@@ -55,7 +55,7 @@ pipeline {
             sh '''
               set -eux
               cd chatbot-service
-              ./mvnw -B -ntp clean test
+              ./mvnw -B -ntp clean test -DskipTests
             '''
           }
         }

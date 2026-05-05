@@ -25,6 +25,20 @@ spec:
           ports:
             - containerPort: {{ .Values.service.port }}
 
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: {{ .Values.env.SPRING_DATASOURCE_URL | quote }}
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.SPRING_DATASOURCE_USERNAME_SECRET.name }}
+                  key: {{ .Values.env.SPRING_DATASOURCE_USERNAME_SECRET.key }}
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.SPRING_DATASOURCE_PASSWORD_SECRET.name }}
+                  key: {{ .Values.env.SPRING_DATASOURCE_PASSWORD_SECRET.key }}
+
       readinessProbe:
         httpGet:
           path: /actuator/health/readiness

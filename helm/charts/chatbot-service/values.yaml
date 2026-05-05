@@ -6,3 +6,12 @@ image:
 service:
   type: ClusterIP
   port: 8084
+
+env:
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/chatbotdb
+  SPRING_DATASOURCE_USERNAME_SECRET:
+    name: postgres-secret
+    key: POSTGRES_USER
+  SPRING_DATASOURCE_PASSWORD_SECRET:
+    name: postgres-secret
+    key: POSTGRES_PASSWORD
