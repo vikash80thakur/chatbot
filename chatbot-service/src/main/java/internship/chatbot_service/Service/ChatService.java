@@ -1,11 +1,14 @@
 package internship.chatbot_service.Service;
 
 import internship.chatbot_service.dto.ContextResponse;
+import internship.chatbot_service.dto.MessageRequest;
+import internship.chatbot_service.dto.QueueMessage;
 import internship.chatbot_service.model.Conversation;
 import internship.chatbot_service.model.Message;
 import internship.chatbot_service.repository.ConversationRepository;
 import internship.chatbot_service.repository.MessageRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -23,6 +26,11 @@ public class ChatService {
 
     private final OpenAIService openAIService;
 
+
+    // rabbitMQ configuration
+    @Autowired
+    private final RabbitMQProducer producer;
+
     // 🔹 Create new conversation
     public Conversation createConversation(String user, Long orgId) {
 
@@ -35,12 +43,12 @@ public class ChatService {
     }
 
     // 🔹 Send message
-    public void sendMessage(Long conversationId, String content) {
+    public void sendMessage(MessageRequest messageRequest) {
 
         Message message = new Message();
-        message.setConversationId(conversationId);
+        message.setConversationId(messageRequest.getConversationId());
         message.setRole("USER");
-        message.setContent(content);
+        message.setContent(messageRequest.getContent());
         message.setTimestamp(LocalDateTime.now());
 
         messageRepository.save(message);
@@ -164,6 +172,14 @@ public class ChatService {
         // 🔹 AI fallback
         String prompt = buildPrompt(context, message, user, conversationId);
 
-        return openAIService.askAI(prompt);
+        // this is previous one
+//        return openAIService.askAI(prompt);
+
+
+        // this is for rabbitmQ
+        QueueMessage queueMessage = new QueueMessage(conversationId, prompt);
+        producer.sendMessage(queueMessage);
+//        producer.sendMessage(prompt);
+        return "Your request is being processed. conversationId=" + conversationId;
     }
 }

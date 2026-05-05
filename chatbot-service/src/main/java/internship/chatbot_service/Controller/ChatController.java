@@ -29,12 +29,19 @@ public class ChatController {
     }
 
     // 🔹 Send message
-    @PostMapping("/conversations/{conversationId}/messages")
+//    @PostMapping("/conversations/{conversationId}/messages")
+//    public String sendMessage(
+//            @PathVariable Long conversationId,
+//            @RequestBody MessageRequest request
+//    ) {
+//        chatService.sendMessage(conversationId, request.getContent());
+//        return "Message saved successfully";
+//    }
+    @PostMapping("/conversations/messages")
     public String sendMessage(
-            @PathVariable Long conversationId,
             @RequestBody MessageRequest request
     ) {
-        chatService.sendMessage(conversationId, request.getContent());
+        chatService.sendMessage(request);
         return "Message saved successfully";
     }
 
