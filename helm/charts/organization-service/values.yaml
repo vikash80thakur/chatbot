@@ -7,6 +7,11 @@ service:
   type: ClusterIP
   port: 8082
 
+postgres:
+  db: organizationdb
+  username: orguser
+  password: orgpassword
+
 env:
   SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/organizationdb
   SPRING_DATASOURCE_USERNAME_SECRET:
