@@ -35,11 +35,11 @@ public class OpenAIService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(apiKey);
 
-        System.out.println("API KEY: " + apiKey);
-        System.out.println("URL: " + url);
-        System.out.println("MODEL: " + model);
-
-        System.out.println("OPENAI PROMPT:\n" + prompt);
+//        System.out.println("API KEY: " + apiKey);
+//        System.out.println("URL: " + url);
+//        System.out.println("MODEL: " + model);
+//
+//        System.out.println("OPENAI PROMPT:\n" + prompt);
 
         Map<String, Object> message = Map.of(
                 "role", "user",

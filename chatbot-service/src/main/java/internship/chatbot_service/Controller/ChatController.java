@@ -1,6 +1,7 @@
 package internship.chatbot_service.Controller;
 
 import internship.chatbot_service.Service.ChatService;
+import internship.chatbot_service.dto.AsyncResponse;
 import internship.chatbot_service.dto.ChatRequest;
 import internship.chatbot_service.dto.ContextResponse;
 import internship.chatbot_service.dto.MessageRequest;
@@ -103,7 +104,7 @@ public class ChatController {
 
 //    Open AI
     @PostMapping("/ai")
-    public String chat(
+    public AsyncResponse chat(
             @RequestHeader("X-User") String user,
             @RequestBody ChatRequest request
     ) {

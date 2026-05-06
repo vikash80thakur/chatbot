@@ -1,5 +1,6 @@
 package internship.chatbot_service.Service;
 
+import internship.chatbot_service.dto.AsyncResponse;
 import internship.chatbot_service.dto.ContextResponse;
 import internship.chatbot_service.dto.MessageRequest;
 import internship.chatbot_service.dto.QueueMessage;
@@ -115,7 +116,6 @@ public class ChatService {
                     .append(context.getOrganizationResponse().getName())
                     .append("\n");
         }
-
         if (context.getProjectResponses() != null) {
             prompt.append("Projects:\n");
             context.getProjectResponses().forEach(p ->
@@ -158,14 +158,9 @@ public class ChatService {
     }
 
     // below is for AI chat Response
-    public String processMessage(Long conversationId, Long orgId, String message, String user) {
+    public AsyncResponse processMessage(Long conversationId, Long orgId, String message, String user) {
 
         ContextResponse context = getContext(orgId);
-
-        // 🔹 Optional: keep fast rules
-        if (message.toLowerCase().contains("project")) {
-            return "Handled locally (fast)";
-        }
 
 //        System.out.println("CALLING OPENAI...");
 
@@ -180,6 +175,9 @@ public class ChatService {
         QueueMessage queueMessage = new QueueMessage(conversationId, prompt);
         producer.sendMessage(queueMessage);
 //        producer.sendMessage(prompt);
-        return "Your request is being processed. conversationId= " + conversationId;
+        return new AsyncResponse(
+                "PROCESSING",
+                conversationId
+        );
     }
 }

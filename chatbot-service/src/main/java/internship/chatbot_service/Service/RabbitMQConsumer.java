@@ -18,15 +18,21 @@ public class RabbitMQConsumer {
     private final MessageRepository messageRepository;
 
     @RabbitListener(queues = RabbitMQConfig.QUEUE)
-    public void receiveMessage(QueueMessage message) {
+    public void receiveMessage(QueueMessage message) throws InterruptedException {
 
-        System.out.println("📥 Message received from queue: " + message);
+        Thread.sleep(10000);
+//        System.out.println("📥 Message received from queue: " + message);
+
+        if (message.getPrompt().contains("fail")) {
+            System.out.println("❌ Simulating failure...");
+            throw new RuntimeException("Simulated failure");
+        }
 
         // Calling OpenAI
         String response = openAIService.askAI(message.getPrompt());
 
         System.out.println("🤖 AI Response: " + response);
-        System.out.println("ConversationId from queue: " + message.getConversationId());
+//        System.out.println("ConversationId from queue: " + message.getConversationId());
 
         // here I'm saving the response in database
         Message msg = new Message(
