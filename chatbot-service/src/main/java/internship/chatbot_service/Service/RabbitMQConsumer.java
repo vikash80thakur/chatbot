@@ -22,13 +22,13 @@ public class RabbitMQConsumer {
 
         System.out.println("📥 Message received from queue: " + message);
 
-        // Call OpenAI
+        // Calling OpenAI
         String response = openAIService.askAI(message.getPrompt());
 
         System.out.println("🤖 AI Response: " + response);
         System.out.println("ConversationId from queue: " + message.getConversationId());
 
-        // (Next step → we will save this to DB)
+        // here I'm saving the response in database
         Message msg = new Message(
                 null,
                 message.getConversationId(),

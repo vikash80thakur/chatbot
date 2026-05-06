@@ -180,6 +180,6 @@ public class ChatService {
         QueueMessage queueMessage = new QueueMessage(conversationId, prompt);
         producer.sendMessage(queueMessage);
 //        producer.sendMessage(prompt);
-        return "Your request is being processed. conversationId=" + conversationId;
+        return "Your request is being processed. conversationId= " + conversationId;
     }
 }
