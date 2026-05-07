@@ -66,7 +66,7 @@ public class RabbitMQConfig {
     public Binding binding(Queue queue,
                            DirectExchange exchange) {
 
-        System.out.println("🔥 Binding Main Queue to Exchange");
+        System.out.println("Binding Main Queue to Exchange");
 
         return BindingBuilder
                 .bind(queue)
@@ -80,7 +80,7 @@ public class RabbitMQConfig {
     @Bean
     public Queue deadLetterQueue() {
 
-        System.out.println("🔥 Creating DLQ: " + DLQ);
+        System.out.println("Creating DLQ: " + DLQ);
 
         return QueueBuilder
                 .durable(DLQ)
@@ -91,7 +91,7 @@ public class RabbitMQConfig {
     @Bean
     public DirectExchange deadLetterExchange() {
 
-        System.out.println("🔥 Creating DLX: " + DLX_EXCHANGE);
+        System.out.println("Creating DLX: " + DLX_EXCHANGE);
 
         return new DirectExchange(DLX_EXCHANGE);
     }
@@ -101,7 +101,7 @@ public class RabbitMQConfig {
     @Bean
     public Binding deadLetterBinding() {
 
-        System.out.println("🔥 Binding DLQ to DLX");
+        System.out.println("Binding DLQ to DLX");
 
         return BindingBuilder
                 .bind(deadLetterQueue())
@@ -128,7 +128,6 @@ public class RabbitMQConfig {
 
         factory.setMessageConverter(messageConverter);
 
-        // IMPORTANT:
         // failed messages should NOT requeue infinitely
         factory.setDefaultRequeueRejected(false);
 

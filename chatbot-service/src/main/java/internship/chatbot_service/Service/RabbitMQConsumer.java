@@ -20,11 +20,11 @@ public class RabbitMQConsumer {
     @RabbitListener(queues = RabbitMQConfig.QUEUE)
     public void receiveMessage(QueueMessage message) throws InterruptedException {
 
-        Thread.sleep(10000);
-//        System.out.println("📥 Message received from queue: " + message);
+        Thread.sleep(15000);
+//        System.out.println("Message received from queue: " + message);
 
         if (message.getPrompt().contains("fail")) {
-            System.out.println("❌ Simulating failure...");
+            System.out.println("Simulating failure...");
             throw new RuntimeException("Simulated failure");
         }
 
