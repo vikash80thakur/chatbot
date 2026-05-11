@@ -17,4 +17,6 @@ public class UserRequest {
     private String password;
 
     private Long organizationId;
+
+    private String role;
 }

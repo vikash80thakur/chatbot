@@ -9,4 +9,5 @@ public class UserResponse {
     private String name;
     private String email;
     private Long organizationId;
+    private String role;
 }

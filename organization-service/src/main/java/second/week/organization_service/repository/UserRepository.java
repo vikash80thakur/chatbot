@@ -27,7 +27,7 @@ public class UserRepository {
     public User save(User user){
         logger.debug("Saving user to database: {}", user.getEmail());
 //        String sql = "INSERT INTO users (name, email, organization_id) VALUES (?, ?, ?)";
-        String sql = "INSERT INTO users (name, email, password, organization_id) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO users (name, email, password, organization_id, role) VALUES (?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         template.update(connection -> {
@@ -36,6 +36,7 @@ public class UserRepository {
             ps.setString(2, user.getEmail());
             ps.setString(3, user.getPassword());
             ps.setLong(4, user.getOrganizationId());
+            ps.setString(5, user.getRole());
             return ps;
         }, keyHolder);
 
@@ -54,7 +55,8 @@ public class UserRepository {
                 rs.getString("name"),
                 rs.getString("email"),
                 rs.getString("password"),
-                rs.getLong("organization_id")
+                rs.getLong("organization_id"),
+                rs.getString("role")
         ));
     }
 
@@ -66,15 +68,16 @@ public class UserRepository {
                 rs.getString("name"),
                 rs.getString("email"),
                 rs.getString("password"),
-                rs.getLong("organization_id")
+                rs.getLong("organization_id"),
+                rs.getString("role")
         ): null, id);
     }
 
 
     // for updating the user
     public User update(User user){
-        String sql = "UPDATE users SET name=?, email=?, password=? WHERE id=?";
-        int row =  template.update(sql, user.getName(), user.getEmail(), user.getPassword(), user.getId());
+        String sql = "UPDATE users SET name=?, email=?, password=?, role=? WHERE id=?";
+        int row =  template.update(sql, user.getName(), user.getEmail(), user.getPassword(), user.getId(), user.getRole());
         if(row == 0){
             throw new RuntimeException("User not Found: " + user.getId());
         }
@@ -103,7 +106,8 @@ public class UserRepository {
                 rs.getString("name"),
                 rs.getString("email"),
                 rs.getString("password"),
-                rs.getLong("organization_id")
+                rs.getLong("organization_id"),
+                rs.getString("role")
         )), orgId);
     }
 
@@ -115,7 +119,8 @@ public class UserRepository {
                 rs.getString("name"),
                 rs.getString("email"),
                 rs.getString("password"),
-                rs.getLong("organization_id")
+                rs.getLong("organization_id"),
+                rs.getString("role")
         ), email);
 
         return users.isEmpty() ? null : users.get(0);

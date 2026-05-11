@@ -15,6 +15,8 @@ public class JwtUtil {
     private final String SECRET = "thisismysecretkeyforauthentication";
     private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
 
+
+    //Note: This token is not used as I'm generating tokent through Organization service when user logs in
     public String generateToken(String username){
         return Jwts.builder()
                 .setSubject(username)
@@ -32,7 +34,12 @@ public class JwtUtil {
                 .getBody();
     }
 
-    public String extractUsername(String token){
-        return validateToken(token).getSubject();
+//    public String extractUsername(String token){
+//        return validateToken(token).getSubject();
+//    }
+
+    public String extractRole(String token) {
+        Claims claims = validateToken(token);
+        return claims.get("role", String.class);
     }
 }

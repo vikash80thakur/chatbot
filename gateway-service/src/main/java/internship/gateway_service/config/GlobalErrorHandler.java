@@ -36,6 +36,11 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
             message = "Invalid or expired token";
         }
 
+        else if ("ACCESS_DENIED".equals(error)) {
+            status = HttpStatus.FORBIDDEN;
+            message = "Access Denied: USER role cannot access organization APIs";
+        }
+
         // 🧾 Response JSON
         String response = String.format(
                 "{\"status\": %d, \"message\": \"%s\", \"timestamp\": \"%s\"}",
@@ -45,12 +50,35 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
         );
 
         exchange.getResponse().setStatusCode(status);
-        exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        exchange.getResponse().getHeaders().add("Content-Type", "application/json");
 
-        DataBuffer buffer = exchange.getResponse()
-                .bufferFactory()
-                .wrap(response.getBytes(StandardCharsets.UTF_8));
+        String body = """
+        {
+            "status": %d,
+            "error": "%s",
+            "message": "%s"
+        }
+        """.formatted(
+                status.value(),
+                status.getReasonPhrase(),
+                message
+        );
 
-        return exchange.getResponse().writeWith(Mono.just(buffer));
+        byte[] bytes = body.getBytes();
+
+        return exchange.getResponse()
+                .writeWith(
+                        Mono.just(
+                                exchange.getResponse()
+                                        .bufferFactory()
+                                        .wrap(bytes)
+                        )
+                );
+
+//        DataBuffer buffer = exchange.getResponse()
+//                .bufferFactory()
+//                .wrap(response.getBytes(StandardCharsets.UTF_8));
+
+//        return exchange.getResponse().writeWith(Mono.just(buffer));
     }
 }

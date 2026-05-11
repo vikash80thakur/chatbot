@@ -44,19 +44,52 @@ public class JwtAuthenticationFilter implements GlobalFilter {
 
             String token = authHeader.substring(7);
 
+//            try {
+//                Claims claims = jwtUtil.validateToken(token);
+//
+//                String role = jwtUtil.extractRole(token);
+//
+//                System.out.println("ROLE: " + role);
+//
+//                if(path.startsWith("/org") && !role.equals("ADMIN")) {
+//                    throw new RuntimeException("ACCESS_DENIED");
+//                }
+//
+//                ServerHttpRequest mutatedRequest = exchange.getRequest()
+//                        .mutate()
+//                        .header("X-User", claims.getSubject())
+//                        .build();
+//
+//                return chain.filter(exchange.mutate().request(mutatedRequest).build());
+//
+//            } catch (Exception e) {
+//                throw new RuntimeException("JWT_INVALID");
+//            }
+
+            Claims claims;
+
             try {
-                Claims claims = jwtUtil.validateToken(token);
-
-                ServerHttpRequest mutatedRequest = exchange.getRequest()
-                        .mutate()
-                        .header("X-User", claims.getSubject())
-                        .build();
-
-                return chain.filter(exchange.mutate().request(mutatedRequest).build());
-
-            } catch (Exception e) {
+                claims = jwtUtil.validateToken(token);
+            }
+            catch (Exception e) {
                 throw new RuntimeException("JWT_INVALID");
             }
+
+            String role = claims.get("role", String.class);
+
+            System.out.println("ROLE: " + role);
+
+// ROLE CHECKS OUTSIDE TRY BLOCK
+            if(path.startsWith("/org") && !role.equals("ADMIN")) {
+                throw new RuntimeException("ACCESS_DENIED");
+            }
+
+            ServerHttpRequest mutatedRequest = exchange.getRequest()
+                    .mutate()
+                    .header("X-User", claims.getSubject())
+                    .build();
+
+            return chain.filter(exchange.mutate().request(mutatedRequest).build());
         }
 
         private Mono<Void> unauthorized(ServerWebExchange exchange, String message) {
@@ -65,4 +98,20 @@ public class JwtAuthenticationFilter implements GlobalFilter {
             return exchange.getResponse()
                     .writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(bytes)));
         }
+
+//    private Mono<Void> forbidden(ServerWebExchange exchange, String message) {
+//
+//        exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+//
+//        byte[] bytes = message.getBytes();
+//
+//        return exchange.getResponse()
+//                .writeWith(
+//                        Mono.just(
+//                                exchange.getResponse()
+//                                        .bufferFactory()
+//                                        .wrap(bytes)
+//                        )
+//                );
+//    }
 }

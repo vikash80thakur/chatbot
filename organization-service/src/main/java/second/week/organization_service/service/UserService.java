@@ -39,6 +39,7 @@ public class UserService {
 //        Here I'm saving password in encrypted form
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setOrganizationId(request.getOrganizationId());
+        user.setRole(request.getRole());
 
         User savedOne = userRepository.save(user);
         logger.info("User created successfully with id: {}", savedOne.getId());
@@ -90,6 +91,8 @@ public class UserService {
 
         user.setName(request.getName());
         user.setEmail(request.getEmail());
+
+        user.setRole(request.getRole());
 
         userRepository.update(user);
 
