@@ -1,0 +1,43 @@
+- name: Configure and manage local chatbot stack
+  hosts: local
+  become: false
+
+  vars_files:
+    - ../vars/app-vars.yml
+
+  tasks:
+
+    - name: Ensure required system packages are installed
+      apt:
+        name:
+          - docker.io
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+
+    - name: Ensure Docker service is running
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Generate .env file for Docker Compose
+      copy:
+        dest: "{{ env_file }}"
+        content: |
+          POSTGRES_DB={{ postgres_db }}
+          POSTGRES_USER={{ postgres_user }}
+          POSTGRES_PASSWORD=changeme
+          GATEWAY_PORT={{ gateway_port }}
+      notify: Restart docker-compose stack
+
+    - name: Start Docker Compose stack
+      command: docker compose up -d
+      args:
+        chdir: "{{ project_root }}"
+
+  handlers:
+    - name: Restart docker-compose stack
+      command: docker compose up -d
+      args:
+        chdir: "{{ project_root }}"

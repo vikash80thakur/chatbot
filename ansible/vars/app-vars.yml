@@ -1,0 +1,7 @@
+project_root: "{{ lookup('env', 'PWD') }}"
+compose_file project_root }}/docker-compose.yml"
+env_file: "{{ project_root }}/.env"
+
+gateway_port: 8080
+postgres_user: orguser
+postgres_db: organizationdb
