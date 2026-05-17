@@ -1,0 +1,139 @@
+pipeline {
+  agent any
+
+  options {
+    timestamps()
+    disableConcurrentBuilds()
+    buildDiscarder(logRotator(numToKeepStr: '10'))
+  }
+
+  parameters {
+    choice(name: 'ACTION', choices: ['plan', 'apply', 'destroy'],
+           description: 'Terraform action to perform')
+    booleanParam(name: 'AUTO_APPROVE', defaultValue: false,
+           description: 'Skip manual approval (not recommended)')
+  }
+
+  environment {
+    TF_IN_AUTOMATION = "true"
+    TF_DIR = "terraform"
+  }
+
+  stages {
+
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Terraform Init') {
+      steps {
+        dir("${TF_DIR}") {
+          sh '''
+            set -eux
+            terraform init -no-color
+          '''
+        }
+      }
+    }
+
+    stage('Terraform Format Check') {
+      steps {
+        dir("${TF_DIR}") {
+          sh '''
+            set -eux
+            terraform fmt -check -recursive
+          '''
+        }
+      }
+    }
+
+    stage('Terraform Validate') {
+      steps {
+        dir("${TF_DIR}") {
+          sh '''
+            set -eux
+            terraform validate -no-color
+          '''
+        }
+      }
+    }
+
+    stage('Terraform Plan') {
+      steps {
+        withCredentials([
+          string(credentialsId: 'postgres-password', variable: 'PG_PASS')
+        ]) {
+          dir("${TF_DIR}") {
+            sh '''
+              set -eux
+
+              export TF_VAR_postgres_password="${PG_PASS}"
+              export TF_VAR_image_tag="manual-run"
+
+              terraform plan -no-color -out=tfplan
+            '''
+          }
+        }
+      }
+    }
+
+    stage('Approval') {
+      when {
+        allOf {
+          expression { params.ACTION == 'apply' }
+          expression { !params.AUTO_APPROVE }
+        }
+      }
+      steps {
+        input message: "Approve Terraform APPLY?", ok: "Apply"
+      }
+    }
+
+    stage('Terraform Apply') {
+      when {
+        expression { params.ACTION == 'apply' }
+      }
+      steps {
+        dir("${TF_DIR}") {
+          sh '''
+            set -eux
+            terraform apply -auto-approve tfplan
+          '''
+        }
+      }
+    }
+
+    stage('Terraform Destroy') {
+      when {
+        expression { params.ACTION == 'destroy' }
+      }
+      steps {
+        withCredentials([
+          string(credentialsId: 'postgres-password', variable: 'PG_PASS')
+        ]) {
+          dir("${TF_DIR}") {
+            sh '''
+              set -eux
+              export TF_VAR_postgres_password="${PG_PASS}"
+              terraform destroy -auto-approve
+            '''
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      archiveArtifacts artifacts: 'terraform/tfplan', allowEmptyArchive: true
+    }
+    success {
+      echo "✅ Terraform pipeline completed successfully"
+    }
+    failure {
+      echo "❌ Terraform pipeline failed"
+    }
+  }
+}
