@@ -1,46 +1,88 @@
+version: "3.9"
+
 services:
- 
+
   postgres:
     image: postgres:16
     container_name: postgres
     restart: always
-    environment:
-      POSTGRES_DB: organization
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Vikash@123#
+    env_file: .env
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
- 
+    networks:
+      - app-network
+
   organization-service:
     build: ./organization-service
     container_name: organization-service
     ports:
       - "8082:8082"
+    env_file: .env
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/organization
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: Vikash@123#
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,prometheus
+      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
     depends_on:
       - postgres
- 
+    networks:
+      - app-network
+
   chatbot-service:
     build: ./chatbot-service
     container_name: chatbot-service
     ports:
       - "8084:8084"
- 
-  gateway-service:
+    environment:
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,prometheus
+      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
+    networks:
+      - app-network
+
+  api-gateway:
     build: ./gateway-service
-    container_name: gateway-service
+    container_name: api-gateway
     ports:
       - "8080:8080"
+    environment:
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,prometheus
+      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
     depends_on:
       - organization-service
       - chatbot-service
- 
+    networks:
+      - app-network
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - app-network
+
+  grafana:
+    image: grafana/grafana:10.4.3
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana   # ✅ THIS LINE
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./monitoring/grafana/dashboards:/etc/grafana/dashboards
+    depends_on:
+      - prometheus
+    networks:
+      - app-network
+
 volumes:
   postgres_data:
- 
+  grafana_data:
+
+networks:
+  app-network:
+    driver: bridge
