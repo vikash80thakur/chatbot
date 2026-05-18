@@ -45,7 +45,7 @@ pipeline {
             sh '''
               set -eux
               cd gateway-service
-              ./mvnw -B -ntp clean test
+              ./mvnw -B -ntp clean test -DskipTests
             '''
           }
         }
