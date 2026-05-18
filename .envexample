@@ -1,0 +1,46 @@
+# =========================
+# GLOBAL
+# =========================
+SPRING_PROFILES_ACTIVE=prod
+
+# =========================
+# DATABASE (BITNAMI POSTGRESQL)
+# =========================
+DB_HOST=chatbot-platform-postgresql
+DB_PORT=5432
+DB_NAME=organizationdb
+DB_USERNAME=orguser
+DB_PASSWORD=orgpassword
+
+SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
+SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+
+# =========================
+# RABBITMQ
+# =========================
+RABBITMQ_HOST=rabbitmq
+RABBITMQ_PORT=5672
+RABBITMQ_USERNAME=guest
+RABBITMQ_PASSWORD=guest
+
+# =========================
+# OPENAI CONFIG
+# =========================
+OPENAI_API_KEY=your_openai_api_key
+OPENAI_MODEL=gpt-4
+OPENAI_URL=https://api.openai.com/v1/chat/completions
+
+# =========================
+# INTERNAL SERVICE URLS (K8s)
+# =========================
+ORG_SERVICE_URL=http://organization-service:8082
+CHAT_SERVICE_URL=http://chatbot-service:8084
+
+# =========================
+# SERVICE PORTS
+# =========================
+CHATBOT_PORT=8084
+ORG_PORT=8082
+GATEWAY_PORT=8080
+``

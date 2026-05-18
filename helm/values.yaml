@@ -15,16 +15,20 @@ organization-service:
     type: ClusterIP
     port: 8082
 
+  
   env:
-    - name: SPRING_DATASOURCE_URL
-      value: "jdbc:postgresql://chatbot-platform-postgresql:5432/organizationdb"
-    - name: SPRING_DATASOURCE_USERNAME
-      value: "orguser"
-    - name: SPRING_DATASOURCE_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: chatbot-platform-postgresql
-          key: password
+      - name: SPRING_DATASOURCE_URL
+        value: "jdbc:postgresql://chatbot-platform-postgresql:5432/organizationdb"
+
+      - name: SPRING_DATASOURCE_USERNAME
+        value: "orguser"
+
+      - name: SPRING_DATASOURCE_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: chatbot-platform-postgresql
+            key: password
+
 
 
 chatbot-service:
@@ -34,6 +38,39 @@ chatbot-service:
   service:
     type: ClusterIP
     port: 8084
+  env:
+      - name: SPRING_DATASOURCE_URL
+        value: "jdbc:postgresql://chatbot-platform-postgresql:5432/organizationdb"
+
+      - name: SPRING_DATASOURCE_USERNAME
+        value: "orguser"
+
+      - name: SPRING_DATASOURCE_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: chatbot-platform-postgresql
+            key: password
+
+      - name: RABBITMQ_HOST
+        value: "rabbitmq"
+
+      - name: RABBITMQ_PORT
+        value: "5672"
+
+      - name: RABBITMQ_USERNAME
+        value: "guest"
+
+      - name: RABBITMQ_PASSWORD
+        value: "guest"
+
+      - name: OPENAI_API_KEY
+        value: "your_openai_api_key"
+
+      - name: OPENAI_MODEL
+        value: "gpt-4"
+
+      - name: OPENAI_URL
+        value: "https://api.openai.com/v1/chat/completions" 
 
 api-gateway:
   replicaCount: 1
@@ -45,8 +82,19 @@ api-gateway:
     nodePort: 30080
   secret:
     enabled: true
+  env:
+      - name: ORG_SERVICE_URL
+        value: "http://chatbot-platform-organization-service:8082"
+
+      - name: CHAT_SERVICE_URL
+        value: "http://chatbot-platform-chatbot-service:8084"
 
 postgresql:
+  image:
+    registry: docker.io
+    repository: bitnami/postgresql
+    tag: "latest"
+
   auth:
     database: organizationdb
     username: orguser

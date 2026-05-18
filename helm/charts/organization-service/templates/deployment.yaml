@@ -13,10 +13,10 @@ spec:
     metadata:
       labels:
         app: {{ include "org.name" . }}      
-    annotations:
-      prometheus.io/scrape: "true"
-      prometheus.io/port: "8082"   
-      prometheus.io/path: "/actuator/prometheus"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8082"   
+        prometheus.io/path: "/actuator/prometheus"
 
     spec:
       {{- with .Values.global.imagePullSecrets }}
@@ -29,19 +29,12 @@ spec:
           imagePullPolicy: {{ .Values.global.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
+          
+          {{- if .Values.env }}
           env:
-            - name: SPRING_DATASOURCE_URL
-              value: {{ .Values.env.SPRING_DATASOURCE_URL | quote }}
-            - name: SPRING_DATASOURCE_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.env.SPRING_DATASOURCE_USERNAME_SECRET.name }}
-                  key: {{ .Values.env.SPRING_DATASOURCE_USERNAME_SECRET.key }}
-            - name: SPRING_DATASOURCE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.env.SPRING_DATASOURCE_PASSWORD_SECRET.name }}
-                  key: {{ .Values.env.SPRING_DATASOURCE_PASSWORD_SECRET.key }}
+          {{ toYaml .Values.env | nindent 12 }}
+          {{- end }}
+
 
           readinessProbe:
             httpGet:

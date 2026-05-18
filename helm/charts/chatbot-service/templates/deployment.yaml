@@ -4,10 +4,6 @@ metadata:
   name: {{ include "chat.fullname" . }}
   labels:
     app: {{ include "chat.name" . }} 
-  annotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "8084"
-    prometheus.io/path: "/actuator/prometheus"
 
 spec:
   replicas: {{ .Values.replicaCount }}
@@ -18,6 +14,10 @@ spec:
     metadata:
       labels:
         app: {{ include "chat.name" . }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8084"
+        prometheus.io/path: "/actuator/prometheus"
     spec:
       {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets:
@@ -30,19 +30,12 @@ spec:
           ports:
             - containerPort: {{ .Values.service.port }}
 
+          
+          {{- if .Values.env }}
           env:
-            - name: SPRING_DATASOURCE_URL
-              value: {{ .Values.env.SPRING_DATASOURCE_URL | quote }}
-            - name: SPRING_DATASOURCE_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.env.SPRING_DATASOURCE_USERNAME_SECRET.name }}
-                  key: {{ .Values.env.SPRING_DATASOURCE_USERNAME_SECRET.key }}
-            - name: SPRING_DATASOURCE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.env.SPRING_DATASOURCE_PASSWORD_SECRET.name }}
-                  key: {{ .Values.env.SPRING_DATASOURCE_PASSWORD_SECRET.key }}
+          {{ toYaml .Values.env | nindent 12 }}
+          {{- end }}
+
 
           readinessProbe:
             httpGet:
