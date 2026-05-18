@@ -14,14 +14,18 @@ organization-service:
   service:
     type: ClusterIP
     port: 8082
+
   env:
-    SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/organizationdb
-    SPRING_DATASOURCE_USERNAME_SECRET:
-      name: postgres-secret
-      key: POSTGRES_USER
-    SPRING_DATASOURCE_PASSWORD_SECRET:
-      name: postgres-secret
-      key: POSTGRES_PASSWORD
+    - name: SPRING_DATASOURCE_URL
+      value: "jdbc:postgresql://chatbot-platform-postgresql:5432/organizationdb"
+    - name: SPRING_DATASOURCE_USERNAME
+      value: "orguser"
+    - name: SPRING_DATASOURCE_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: chatbot-platform-postgresql
+          key: password
+
 
 chatbot-service:
   replicaCount: 1
@@ -39,3 +43,29 @@ api-gateway:
     type: NodePort
     port: 8080
     nodePort: 30080
+  secret:
+    enabled: true
+
+postgresql:
+  auth:
+    database: organizationdb
+    username: orguser
+    password: orgpassword
+
+  primary:
+    persistence:
+      enabled: true
+      size: 1Gi
+
+kube-prometheus-stack:
+  grafana:
+    adminPassword: admin
+
+    service:
+      type: NodePort
+      nodePort: 30090
+
+  prometheus:
+    service:
+      type: NodePort
+      nodePort: 30091

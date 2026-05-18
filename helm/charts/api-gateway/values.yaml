@@ -25,5 +25,5 @@ config:
     spring.cloud.gateway.routes[1].predicates[0]=Path=/chat/**
 
 secret:
-  enabled: false
+  enabled: true
   data: {}

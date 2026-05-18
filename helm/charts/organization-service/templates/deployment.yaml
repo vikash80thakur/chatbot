@@ -12,7 +12,12 @@ spec:
   template:
     metadata:
       labels:
-        app: {{ include "org.name" . }}
+        app: {{ include "org.name" . }}      
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "8082"   
+      prometheus.io/path: "/actuator/prometheus"
+
     spec:
       {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets:
