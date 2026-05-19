@@ -89,6 +89,17 @@ api-gateway:
       - name: CHAT_SERVICE_URL
         value: "http://chatbot-platform-chatbot-service:8084"
 
+rabbitmq:
+  auth:
+    username: guest
+    password: guest
+  
+  replicaCount: 1
+  
+  persistence:
+    enabled: true
+    size: 1Gi
+
 postgresql:
   image:
     registry: docker.io

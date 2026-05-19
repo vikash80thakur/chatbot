@@ -2,6 +2,9 @@ dependencies:
 - name: postgresql
   repository: https://charts.bitnami.com/bitnami
   version: 15.5.20
+- name: rabbitmq
+  repository: https://charts.bitnami.com/bitnami
+  version: 16.0.14
 - name: kube-prometheus-stack
   repository: https://prometheus-community.github.io/helm-charts
   version: 58.1.2
@@ -14,5 +17,5 @@ dependencies:
 - name: organization-service
   repository: file://charts/organization-service
   version: 0.1.0
-digest: sha256:d2305df04195ba02e7c951ef5ed3e42e9448f33e652c9242613edbeec692095e
-generated: "2026-05-17T21:05:07.300876795Z"
+digest: sha256:3a5b8666dbe756409577c25b6605593289206f7ae455e532a18d90a2822608b7
+generated: "2026-05-19T04:21:58.865937128Z"
