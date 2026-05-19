@@ -58,10 +58,10 @@ chatbot-service:
         value: "5672"
 
       - name: RABBITMQ_USERNAME
-        value: "guest"
+        value: "admin"
 
       - name: RABBITMQ_PASSWORD
-        value: "guest"
+        value: "admin"
 
       - name: OPENAI_API_KEY
         value: "your_openai_api_key"
@@ -105,6 +105,22 @@ rabbitmq:
   persistence:
     enabled: true
     size: 1Gi
+
+  
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 180
+    periodSeconds: 30
+    timeoutSeconds: 20
+    failureThreshold: 10
+
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 20
+    failureThreshold: 10
+
 
 postgresql:
   image:
