@@ -109,17 +109,19 @@ rabbitmq:
   
   livenessProbe:
     enabled: true
-    initialDelaySeconds: 180
+    initialDelaySeconds: 240
     periodSeconds: 30
     timeoutSeconds: 20
     failureThreshold: 10
 
   readinessProbe:
     enabled: true
-    initialDelaySeconds: 60
+    initialDelaySeconds: 120
     periodSeconds: 30
     timeoutSeconds: 20
-    failureThreshold: 10
+    failureThreshold: 15
+
+  extraPlugins: "rabbitmq_management"
 
 
 postgresql:
