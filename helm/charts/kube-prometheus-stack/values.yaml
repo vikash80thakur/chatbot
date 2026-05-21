@@ -1,0 +1,42 @@
+serviceMonitor:
+  enabled: true
+  
+  # ServiceMonitor for API Gateway
+  apiGateway:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    labels: {}
+    relabelings: []
+
+  # ServiceMonitor for Chatbot Service
+  chatbotService:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    labels: {}
+    relabelings: []
+
+  # ServiceMonitor for Organization Service
+  organizationService:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    labels: {}
+    relabelings: []
+
+  # ServiceMonitor for PostgreSQL
+  postgresql:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    labels: {}
+    relabelings: []
+
+  # ServiceMonitor for RabbitMQ
+  rabbitmq:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    labels: {}
+    relabelings: []

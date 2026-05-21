@@ -1,0 +1,22 @@
+{{- if and .Values.serviceMonitor.enabled .Values.serviceMonitor.postgresql.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "kube-prometheus-stack.fullname" . }}-postgresql
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kube-prometheus-stack.labels" . | nindent 4 }}
+    app: postgresql
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgresql
+  endpoints:
+  - port: metrics
+    interval: {{ .Values.serviceMonitor.postgresql.interval }}
+    scrapeTimeout: {{ .Values.serviceMonitor.postgresql.scrapeTimeout }}
+    {{- with .Values.serviceMonitor.postgresql.relabelings }}
+    relabelings:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+{{- end }}

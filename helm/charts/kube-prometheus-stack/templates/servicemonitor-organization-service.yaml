@@ -1,0 +1,23 @@
+{{- if and .Values.serviceMonitor.enabled .Values.serviceMonitor.organizationService.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "kube-prometheus-stack.fullname" . }}-organization-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kube-prometheus-stack.labels" . | nindent 4 }}
+    app: organization-service
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: organization-service
+  endpoints:
+  - port: metrics
+    interval: {{ .Values.serviceMonitor.organizationService.interval }}
+    scrapeTimeout: {{ .Values.serviceMonitor.organizationService.scrapeTimeout }}
+    path: /actuator/prometheus
+    {{- with .Values.serviceMonitor.organizationService.relabelings }}
+    relabelings:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+{{- end }}

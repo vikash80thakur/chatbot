@@ -1,0 +1,22 @@
+{{- if and .Values.serviceMonitor.enabled .Values.serviceMonitor.rabbitmq.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "kube-prometheus-stack.fullname" . }}-rabbitmq
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kube-prometheus-stack.labels" . | nindent 4 }}
+    app: rabbitmq
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rabbitmq
+  endpoints:
+  - port: metrics
+    interval: {{ .Values.serviceMonitor.rabbitmq.interval }}
+    scrapeTimeout: {{ .Values.serviceMonitor.rabbitmq.scrapeTimeout }}
+    {{- with .Values.serviceMonitor.rabbitmq.relabelings }}
+    relabelings:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+{{- end }}
